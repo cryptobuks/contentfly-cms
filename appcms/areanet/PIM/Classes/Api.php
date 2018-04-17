@@ -828,11 +828,12 @@ class Api
         if(count($properties) > 0){
             $partialProperties = implode(',', $properties);
             $queryBuilder->select('partial '.$entityNameAlias.'.{id,'.$partialProperties.'}');
-                        $query  = $queryBuilder->getQuery();
+            $query  = $queryBuilder->getQuery();
         }else{
             $queryBuilder->select($entityNameAlias);
             $query = $queryBuilder->getQuery();
         }
+
 
         $objects = $query->getResult();
 
@@ -905,6 +906,8 @@ class Api
         $entities[] = "PIM\\Permission";
         $entities[] = "PIM\\Nav";
         $entities[] = "PIM\\NavItem";
+        $entities[] = "PIM\\Option";
+        $entities[] = "PIM\\OptionGroup";
 
         $data     = array();
 
@@ -919,6 +922,7 @@ class Api
             $object    = new $className();
             $reflect   = new \ReflectionClass($object);
             $props     = $reflect->getProperties(\ReflectionProperty::IS_PUBLIC | \ReflectionProperty::IS_PROTECTED);
+            $entityName = $entity;
 
             $defaultValues = $reflect->getDefaultProperties();
 
@@ -939,7 +943,7 @@ class Api
                 'labelProperty' => null,
                 'type' => 'default',
                 'tabs' => array(
-                    'default'   => array('title' => 'Allgemein', 'onejoin' => false)
+                    'default'   => array('title' => Adapter::getConfig()->FRONTEND_TAB_GENERAL_NAME, 'onejoin' => false)
                 ),
                 'dbname' => null,
                 'viewMode' => 0
@@ -1036,7 +1040,7 @@ class Api
                 foreach($this->app['typeManager']->getTypes() as $type){
                     if($type->doMatch($allPropertyAnnotations) && $type->getPriority() >= $lastMatchedPriority){
 
-                        $propertySchema                 = $type->processSchema($prop->getName(), $defaultValues[$prop->getName()], $allPropertyAnnotations);
+                        $propertySchema                 = $type->processSchema($prop->getName(), $defaultValues[$prop->getName()], $allPropertyAnnotations, $entityName);
                         $properties[$prop->getName()]   = $propertySchema;
 
                         if(($tab = $type->getTab())){
